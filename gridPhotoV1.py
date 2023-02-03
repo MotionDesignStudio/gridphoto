@@ -134,22 +134,28 @@ class GridPhoto:
 
         # create json object from dictionary
         import json
-        with open( "%s.json" % (savedToDirectory + self.imgObject.filename), "w") as fp:
-            json.dump( self.rebuildDictionary, fp, indent = 4)
+
+        # A possible bug might be here with the saving paths 
+        #with open( "%s.json" % (savedToDirectory + self.imgObject.filename), "w") as fp:
+        with open( "%s.json" % ( savedToDirectory +  os.path.basename( args.Graphic ) ), "w") as fp:
+           json.dump( self.rebuildDictionary, fp, indent = 4)
 
 
 
             
 # Function only for rebuilding a image from an external JSON file
 def rebuildImage(JSONFile):
-    # The original dimensions of the image are available
-    # I am calulating then from the array if trying to build the image from a dictionary
+
+    savedToDirectory=""
+    if args.Directory:
+        savedToDirectory = args.Directory +"/"
 
     print ( "Rebuilding Image")
     import json
     with open(JSONFile, "r") as fp:
         rebuildDictionary = json.load(fp, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()} )
     
+    # Set original dimensions of the image 
     originalImgWidth = rebuildDictionary["info"]["width"]
     originalImgHeight= rebuildDictionary["info"]["height"]
 
@@ -171,7 +177,7 @@ def rebuildImage(JSONFile):
     randomColumns = [ *range (    len ( rebuildDictionary[ 0 ] )      ) ]
     # Randomize Row Only create a random list the length of the sum of row and shuffle
     # This needs to modify behavior for Y since it is extracted from the image
-    if args.Effects == "2":
+    if args.Effects == "2" or args.Effects == "4":
         print ( "Randomized Rows" )
         
         random.shuffle ( randomRow ) 
@@ -192,7 +198,7 @@ def rebuildImage(JSONFile):
             yp += int ( removedExt[5] )
 
     # Randomizing X positions
-    if args.Effects == "3":
+    if args.Effects == "3" or args.Effects == "4":
         print ( "Randomizing X Positions")
         #numberOfColumns = len ( rebuildDictionary[ 0 ] )
         
@@ -214,27 +220,13 @@ def rebuildImage(JSONFile):
 
     yPosition = 0
     xPosition = 0
-    #for i in range ( rebuildDictionary["info"]["numOfRows"] ) :
+
     for row in randomRow:    
         
-        # Y position or row never changes
-        #yPosition = os.path.splitext(  rebuildDictionary[ i ][0]   )[0].split( "_")[1]
-        #yPosition = os.path.splitext(  rebuildDictionary[ row ][0]   )[0].split( "_")[1]
-
-        #for image in rebuildDictionary[ row ]:
         for image in randomColumns:
 
-            #print ( rebuildDictionary[ row ][ image ] )
-            # 0_65_20_130_20_65.png
-
-            #removedExt = os.path.splitext(image)[0].split( "_")
             removedExt = os.path.splitext(    rebuildDictionary[ row ][ image ]    )[0].split( "_")
-
-            #print ( removedExt )
-            #['80', '65', '100', '130', '20', '65']
-            
-            #newImage.paste( Image.open( image ), ( xPosition, int ( yPosition ) ) )
-            newImage.paste( Image.open(  rebuildDictionary[ row ][ image ]  ), ( xPosition, int ( yPosition ) ) )
+            newImage.paste( Image.open(  savedToDirectory + rebuildDictionary[ row ][ image ]  ), ( xPosition, int ( yPosition ) ) )
             xPosition += int ( removedExt[4] )
             
         xPosition = 0
@@ -257,7 +249,7 @@ def rebuildImage(JSONFile):
     try:
         newImage.save( args.Save, quality=args.Quality if args.Quality else 75 )
         # Debuging Only
-        Image.open( args.Save ).show()
+        #Image.open( args.Save ).show()
     except ValueError as error:
         print ( error )
     
