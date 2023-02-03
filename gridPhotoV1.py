@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+from random import random
 from textwrap import indent
 from xmlrpc.client import TRANSPORT_ERROR
 from PIL import Image
 import argparse
 import pathlib
 import os
+import random
 
 # Init parser
 parser = argparse.ArgumentParser()
@@ -33,8 +35,6 @@ class GridPhoto:
         self.alertMessageRows = ""
         self.alertWidth()
         self.alertHeight()
-        self.listForCroppingAndRebuilding = []
-        #self.rebuildList=[]
         self.rebuildDictionary={ "info": {} }
         self.testDic ={"info": {} }
         self.fileExtension = pathlib.Path(self.imgObject.filename).suffix
@@ -86,19 +86,13 @@ class GridPhoto:
                     incrementX = self.imgWidth
 
                 #  Adding Width and Height to help with rebuilding using special effects    
-                #print (" W :: "+ str (incrementX - i) + "  H :: " + str ( incrementY - y ) )
                 W = incrementX - i
                 H = incrementY - y
 
-
                 croppingList.append( ( i, y, incrementX, incrementY ) )
-                #filenameforDictionary = "%s_%s_%s_%s%s" % ( i, y, incrementX, incrementY, self.fileExtension )
                 filenameforDictionary = "%s_%s_%s_%s_%s_%s%s" % ( i, y, incrementX, incrementY, W, H, self.fileExtension )
-                #print ( "filenameforDictionary :: %s" % filenameforDictionary )
                 filenameList.append( filenameforDictionary )            
-                #ex: 0_0_65_65.png
-
-            self.listForCroppingAndRebuilding.append( croppingList.copy() )
+                #ex: 0_0_65_50_65_50.png
            
             # This is row position for the images in the dictionary 
             self.rebuildDictionary[ rowPosition ] = filenameList.copy()
@@ -110,20 +104,16 @@ class GridPhoto:
         
         # Add information for the two tiles that could cause issues when doing a randomization of positions
         removedExt = os.path.splitext( self.rebuildDictionary[0][-1] )[0].split( "_") 
-        self.rebuildDictionary[ "info" ]["lastTileWidth"] = int (removedExt[2]) - int (removedExt[0])
+        self.rebuildDictionary[ "info" ]["lastTileWidth"] = int (removedExt[4])
 
         removedExt=  os.path.splitext( self.rebuildDictionary[rowPosition - 1][-1]  )[0].split( "_") 
-        self.rebuildDictionary[ "info" ]["lastBottomRithTileHeight"] = int (removedExt[-1]) - int (removedExt[1])
+        self.rebuildDictionary[ "info" ]["lastBottomRithTileHeight"] = int ( removedExt[5] )
         
         # This will feel strange because I use range as a counter 
         # that uses this number for the dictionary values later when rebuilding the image
         # range terminate before the last number
         self.rebuildDictionary[ "info" ]["numOfRows"] = rowPosition 
 
-        # create json object from dictionary
-        import json
-        with open( "%s.json" % (self.imgObject.filename), "w") as fp:
-            json.dump( self.rebuildDictionary, fp, indent = 4)
 
     def makeImages(self):
         savedToDirectory = ""
@@ -135,41 +125,22 @@ class GridPhoto:
             except OSError as error:
                 print ( error )
 
-        print (  "XXXX self.rebuildDictionary XXXXX :: %s" % self.rebuildDictionary )
-        #print (  "WWWWW self.listForCroppingAndRebuilding  WWWWW :: %s" % self.listForCroppingAndRebuilding )
 
-        for i in range ( self.rebuildDictionary["info"]["numOfRows"] ) :
-            print ( self.rebuildDictionary[ i ] )
-            print ( self.listForCroppingAndRebuilding[i] )
-            for file in self.rebuildDictionary[ i ]:
-                pass
-                #print ( file )
-        
+        for row in range ( self.rebuildDictionary["info"]["numOfRows"] ) :
 
-        nameOfTileImage = ""
-        for outerList in self.listForCroppingAndRebuilding:
-            for innerTuples in outerList:
-                # Build the name
-                
-                for character in innerTuples:
-                    nameOfTileImage += str(character)+"_"
+            for file in self.rebuildDictionary[ row ]:
+                top, left, right, bottom, *extra  = file.split( "_")
+                self.imgObject.crop(  ( int (top) , int(left), int(right), int(bottom) ) ).save( savedToDirectory + file , quality=args.Quality if args.Quality else 75 )
 
-                nameOfTileImage = savedToDirectory + nameOfTileImage[:-1] + self.fileExtension 
+        # create json object from dictionary
+        import json
+        with open( "%s.json" % (savedToDirectory + self.imgObject.filename), "w") as fp:
+            json.dump( self.rebuildDictionary, fp, indent = 4)
 
-                #print (  "OOOOO :: %s" % nameOfTileImage )
 
-                # Build list of filenames used to place image back together
-                #self.rebuildList.append( nameOfTileImage )
-
-                self.imgObject.crop( innerTuples ).save( nameOfTileImage , quality=args.Quality if args.Quality else 75 )
-                
-                # Reset this name variable
-                nameOfTileImage = ""
 
             
-
-    
-# Function only for rebuilding an image from an external JSON file
+# Function only for rebuilding a image from an external JSON file
 def rebuildImage(JSONFile):
     # The original dimensions of the image are available
     # I am calulating then from the array if trying to build the image from a dictionary
@@ -195,17 +166,101 @@ def rebuildImage(JSONFile):
 
     newImage = Image.new( setModeDepth, ( originalImgWidth, originalImgHeight ))
 
+
+    randomRow = [ *range ( rebuildDictionary["info"]["numOfRows"] ) ]
+    randomColumns = [ *range (    len ( rebuildDictionary[ 0 ] )      ) ]
+    # Randomize Row Only create a random list the length of the sum of row and shuffle
+    # This needs to modify behavior for Y since it is extracted from the image
+    if args.Effects == "2":
+        print ( "Randomized Rows" )
+        
+        random.shuffle ( randomRow ) 
+        
+        #print ( randomRow )
+        yp = 0
+        xp = 0
+        for row in randomRow:
+            #print ( "YP :: %s" % yp )
+            #print ( rebuildDictionary[ row ] )
+            for image in rebuildDictionary[ row ]:
+                pass
+                #print ( image )
+            
+            removedExt = os.path.splitext( rebuildDictionary[ row ][0] )[0].split( "_")
+            #print ( "RRRR ::: %s " % rebuildDictionary[ row ][0] )
+            #print ( "removedExt ::: %s " % removedExt )
+            yp += int ( removedExt[5] )
+
+    # Randomizing X positions
+    if args.Effects == "3":
+        print ( "Randomizing X Positions")
+        #numberOfColumns = len ( rebuildDictionary[ 0 ] )
+        
+        random.shuffle ( randomColumns ) 
+        #print ( "randomColumns :: %s" % randomColumns )
+        for row in randomRow:
+            #print ( "YP :: %s" % yp )
+            #pass
+            for image in randomColumns:
+                pass
+                #print ( "Random :: %s  Image :: %s " % (image, rebuildDictionary[ row ][ image ] ) )
+
+            #print ( rebuildDictionary[ row ] )
+            #for image in rebuildDictionary[ row ]:
+             #   print ( image )
+
+
+
+
+    yPosition = 0
+    xPosition = 0
+    #for i in range ( rebuildDictionary["info"]["numOfRows"] ) :
+    for row in randomRow:    
+        
+        # Y position or row never changes
+        #yPosition = os.path.splitext(  rebuildDictionary[ i ][0]   )[0].split( "_")[1]
+        #yPosition = os.path.splitext(  rebuildDictionary[ row ][0]   )[0].split( "_")[1]
+
+        #for image in rebuildDictionary[ row ]:
+        for image in randomColumns:
+
+            #print ( rebuildDictionary[ row ][ image ] )
+            # 0_65_20_130_20_65.png
+
+            #removedExt = os.path.splitext(image)[0].split( "_")
+            removedExt = os.path.splitext(    rebuildDictionary[ row ][ image ]    )[0].split( "_")
+
+            #print ( removedExt )
+            #['80', '65', '100', '130', '20', '65']
+            
+            #newImage.paste( Image.open( image ), ( xPosition, int ( yPosition ) ) )
+            newImage.paste( Image.open(  rebuildDictionary[ row ][ image ]  ), ( xPosition, int ( yPosition ) ) )
+            xPosition += int ( removedExt[4] )
+            
+        xPosition = 0
+        removedExt = os.path.splitext( rebuildDictionary[ row ][0] )[0].split( "_")
+        yPosition += int ( removedExt[5] )
+
+
+        
+
+
+    # Original way of placing images using the corodinates embeded within the name
+    """
     for i in range ( rebuildDictionary["info"]["numOfRows"] ) :
-        #print ( i )
         for image in  rebuildDictionary[ i ]:
             newImage.paste( Image.open( image ), ( int ( image.split( "_")[0] ), int ( image.split( "_")[1] ) ) )
+    """
+    
 
     # Failsafe for ...
     try:
         newImage.save( args.Save, quality=args.Quality if args.Quality else 75 )
+        # Debuging Only
+        Image.open( args.Save ).show()
     except ValueError as error:
         print ( error )
-
+    
     
 
 def effects( JSONFile ):
@@ -214,9 +269,9 @@ def effects( JSONFile ):
     with open(JSONFile, "r") as fp:
         rebuildDictionary = json.load(fp, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()} )
     
-    print ( rebuildDictionary )
+    #print ( rebuildDictionary )
 
-    print ( rebuildDictionary[0] )
+    #print ( rebuildDictionary[0] )
 
     # Rebuild Image
 
@@ -235,6 +290,7 @@ if args.JasonR and args.Save:
 
 # Init special effects
 if args.Effects and args.JasonR:
-    effects( args.JasonR )
+    pass
+    #effects( args.JasonR )
     #pass
 
