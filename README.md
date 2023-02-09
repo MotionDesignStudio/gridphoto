@@ -1,9 +1,10 @@
 # gridphoto
-This makes tiles from a larger image.
+## This makes tiles from a larger image.
 
 ] USAGE [ 
 
 ./gridPhotoV1.py -h
+```
 usage: gridPhotoV1.py [-h] [-g GRAPHIC] [-c COLUMNS] [-r ROWS] [-q QUALITY] [-d DIRECTORY] [-s SAVE] [-j JASONR] [-e EFFECTS]
 
 optional arguments:
@@ -22,6 +23,7 @@ optional arguments:
                         Provides a JSON file for rebuild image
   -e EFFECTS, --Effects EFFECTS
                         Randomized Tiling Choices: 2, 3 or 4
+```
 
 ] EXAMPLE [
 
