@@ -19,7 +19,7 @@ parser.add_argument( "-q", "--Quality", help = "0 - 100 only for JPEG, TIFF, Web
 parser.add_argument( "-d", "--Directory", help = "Save to Directory" )
 parser.add_argument( "-s", "--Save", help = "Rebuilding ONLY image name" )
 parser.add_argument( "-j", "--JasonR", help = "Provides a JSON file for rebuild image" )
-parser.add_argument( "-e", "--Effects", help = "Randomized Tiling" )
+parser.add_argument( "-e", "--Effects", help = "Randomized Tiling Choices: 2, 3 or 4" )
 
 # Read arguments from command line
 args = parser.parse_args()
@@ -136,7 +136,7 @@ class GridPhoto:
         import json
 
         # A possible bug might be here with the saving paths 
-        #with open( "%s.json" % (savedToDirectory + self.imgObject.filename), "w") as fp:
+        # with open( "%s.json" % (savedToDirectory + self.imgObject.filename), "w") as fp:
         with open( "%s.json" % ( savedToDirectory +  os.path.basename( args.Graphic ) ), "w") as fp:
            json.dump( self.rebuildDictionary, fp, indent = 4)
 
@@ -159,7 +159,7 @@ def rebuildImage(JSONFile):
     originalImgWidth = rebuildDictionary["info"]["width"]
     originalImgHeight= rebuildDictionary["info"]["height"]
 
-    # This needs to be exxpanded to incluse other file formats not supporting RGBA
+    # This needs to be expanded to include other file formats not supporting RGBA
     setModeDepth = "RGBA"
 
     # Failsafe if the user provides no filename to be saved
@@ -200,13 +200,9 @@ def rebuildImage(JSONFile):
     # Randomizing X positions
     if args.Effects == "3" or args.Effects == "4":
         print ( "Randomizing X Positions")
-        #numberOfColumns = len ( rebuildDictionary[ 0 ] )
         
         random.shuffle ( randomColumns ) 
-        #print ( "randomColumns :: %s" % randomColumns )
         for row in randomRow:
-            #print ( "YP :: %s" % yp )
-            #pass
             for image in randomColumns:
                 pass
                 #print ( "Random :: %s  Image :: %s " % (image, rebuildDictionary[ row ][ image ] ) )
@@ -261,12 +257,6 @@ def effects( JSONFile ):
     with open(JSONFile, "r") as fp:
         rebuildDictionary = json.load(fp, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()} )
     
-    #print ( rebuildDictionary )
-
-    #print ( rebuildDictionary[0] )
-
-    # Rebuild Image
-
 
 if args.Graphic and args.Rows and args.Columns:
     # Init the PIL Image and assign it a value
