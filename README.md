@@ -28,24 +28,25 @@ optional arguments:
 ] EXAMPLE [
 
 Each with produce tiles and a .json file used to rebuild the image.
-
+```
 ./gridPhotoV1.py -g testImages/box.gif -r 65 -c 65
-
+```
 	- g  image location | -r height of tiles | – c width of tiles
 
 Specify A Output Directory :
-
+```
 ./gridPhotoV1.py -g testImages/box.gif -r 65 -c 65 -d tmp
-	-d output directory will be created and must not exist before hand.
+```
+    -d output directory will be created and must not exist before hand.
 
 Rebuilding Images From Specific Directory :
-
+```
 ./gridPhotoV1.py -j tmp/box.gif.json -q 90 -d tmp  -s buidImage.jpg
-
+```
 	-j mandatory source .json file | -q quality [0 – 100] not all file format support | -s output image name
 
 Randomized Rebuilding of image :
-
+```
 ./gridPhotoV1.py -j tmp/box.gif.json -q 90 -d tmp -e 4  -s buidImage.jpg
-
+```
 	-e built in randomize placement of tiles during rebuild
