@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: gridphoto
+Version: 0.1.0
+Summary: This makes tiles from a larger image.
+Home-page: https://github.com/MotionDesignStudio/gridphoto
+Author: Motion Design Studio
+Author-email: thank@you.net
+License: Creative Commons
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3
+License-File: LICENSE
+
+This will take a larger image and slice it up into smaller tile images.  This script will also rebuild the original from the smaller tiles or randomly place the tiles back together creating an image with the same dimensions using all the tiles.
+
